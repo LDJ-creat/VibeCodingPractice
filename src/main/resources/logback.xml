@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 定义日志文件的存储地址 -->
+    <property name="LOG_HOME" value="./logs" />
+    
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <!-- 文件输出 -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/health-management.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!-- 按天滚动 -->
+            <fileNamePattern>${LOG_HOME}/health-management.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- 保留30天的日志 -->
+            <maxHistory>30</maxHistory>
+            <!-- 单个文件最大100MB -->
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>100MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+    
+    <!-- 异步日志 - 提高性能 -->
+    <appender name="ASYNC_FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <discardingThreshold>0</discardingThreshold>
+        <queueSize>1024</queueSize>
+        <appender-ref ref="FILE"/>
+    </appender>
+    
+    <!-- 特定包的日志级别 -->
+    <logger name="com.chuanzhi.health" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <!-- 如果需要输出到文件，请取消下面这行的注释 -->
+        <!-- <appender-ref ref="ASYNC_FILE"/> -->
+    </logger>
+    
+    <!-- 数据库相关日志 -->
+    <logger name="com.chuanzhi.health.dao" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <!-- 如果需要输出到文件，请取消下面这行的注释 -->
+        <!-- <appender-ref ref="ASYNC_FILE"/> -->
+    </logger>
+    
+    <!-- 根日志级别 -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE"/>
+        <!-- 如果需要输出到文件，请取消下面这行的注释并注释掉上面的CONSOLE -->
+        <!-- <appender-ref ref="ASYNC_FILE"/> -->
+    </root>
+    
+</configuration>

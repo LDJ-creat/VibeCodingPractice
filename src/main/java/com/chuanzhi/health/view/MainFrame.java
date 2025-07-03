@@ -9,16 +9,20 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.chuanzhi.health.model.User;
 
 public class MainFrame extends JFrame {
+    private static final Logger logger = LoggerFactory.getLogger(MainFrame.class);
 
     private User currentUser;
 
     public MainFrame(User user) {
         this.currentUser = user;
-        System.out.printf(currentUser.getUsername());
-        System.out.printf(currentUser.getLev());
+        logger.info("用户{}登录系统，角色: {}", currentUser.getUsername(), currentUser.getLev());
+        
         setTitle("传智健康管理系统 - " + user.getUname());
         setSize(1000, 700);
         setLocationRelativeTo(null); // 居中显示
@@ -26,19 +30,23 @@ public class MainFrame extends JFrame {
 
         JTabbedPane tabbedPane = new JTabbedPane();
         var result ="admin".equals(currentUser.getLev().trim());
-        System.out.println(result);
+        logger.debug("用户角色验证结果: {}", result);
+        
         // 根据用户角色添加不同的功能模块
         if ("admin".equals(currentUser.getLev())) {
             // 管理员功能
+            logger.debug("加载管理员功能模块");
             tabbedPane.addTab("检查项管理", new CheckitemManagementView());
             tabbedPane.addTab("检查组管理", new CheckgroupManagementView());
             // 可以添加其他管理员功能
         } else if ("user".equals(currentUser.getLev())) {
             // 普通用户功能
+            logger.debug("加载普通用户功能模块");
             tabbedPane.addTab("用户主页", new UserMainView(currentUser));
             // 可以添加其他用户功能
         } else {
             // 默认或未知角色
+            logger.warn("未知用户角色: {}", currentUser.getLev());
             JOptionPane.showMessageDialog(this, "未知用户角色，请联系管理员。", "错误", JOptionPane.ERROR_MESSAGE);
             System.exit(0);
         }
@@ -50,7 +58,7 @@ public class MainFrame extends JFrame {
             @Override
             public void windowClosing(WindowEvent e) {
                 // 可以在这里添加退出确认逻辑或资源清理
-                System.out.println("MainFrame is closing.");
+                logger.info("用户{}退出系统", currentUser.getUsername());
                 // System.exit(0); // 如果需要彻底退出应用程序
             }
         });

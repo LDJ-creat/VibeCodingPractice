@@ -3,6 +3,9 @@ package com.chuanzhi.health.service;
 import java.util.Date;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.chuanzhi.health.dao.AppointmentDao;
 import com.chuanzhi.health.dao.impl.AppointmentDaoImpl;
 import com.chuanzhi.health.model.Appointment;
@@ -11,6 +14,7 @@ import com.chuanzhi.health.model.Appointment;
  * 预约服务
  */
 public class AppointmentService {
+    private static final Logger logger = LoggerFactory.getLogger(AppointmentService.class);
     private AppointmentDao appointmentDao;
 
     public AppointmentService() {
@@ -30,17 +34,27 @@ public class AppointmentService {
      * @return 创建的预约对象
      */
     public Appointment createAppointment(int userId, int setmealId, Date appointmentDate) {
+        logger.debug("开始创建预约 - 用户ID: {}, 套餐ID: {}, 预约日期: {}", userId, setmealId, appointmentDate);
+        
         if (appointmentDate.before(new Date())) {
-            System.out.println("预约日期不能早于当前日期");
+            logger.warn("用户{}尝试创建过期预约，预约日期: {}", userId, appointmentDate);
             return null;
         }
+        
         Appointment appointment = new Appointment();
         appointment.setUserId(userId);
         appointment.setSetmealId(setmealId);
         appointment.setAppointmentDate(appointmentDate);
         appointment.setStatus("pending"); // 初始状态为待处理
+        
         int result = appointmentDao.add(appointment);
-        return result > 0 ? appointment : null;
+        if (result > 0) {
+            logger.info("用户{}成功创建预约，套餐ID: {}, 预约日期: {}", userId, setmealId, appointmentDate);
+            return appointment;
+        } else {
+            logger.error("用户{}创建预约失败，套餐ID: {}, 预约日期: {}", userId, setmealId, appointmentDate);
+            return null;
+        }
     }
 
     /**
@@ -49,7 +63,16 @@ public class AppointmentService {
      * @return 是否成功
      */
     public boolean cancelAppointment(int appointmentId) {
-        return appointmentDao.updateStatus(appointmentId, "cancelled") > 0;
+        logger.debug("开始取消预约 - 预约ID: {}", appointmentId);
+        
+        int result = appointmentDao.updateStatus(appointmentId, "cancelled");
+        if (result > 0) {
+            logger.info("成功取消预约 - 预约ID: {}", appointmentId);
+            return true;
+        } else {
+            logger.warn("取消预约失败 - 预约ID: {}", appointmentId);
+            return false;
+        }
     }
 
     /**
@@ -58,7 +81,10 @@ public class AppointmentService {
      * @return 预约列表
      */
     public List<Appointment> findByUserId(int userId) {
-        return appointmentDao.findByUserIdWithCheckgroupName(userId);
+        logger.debug("查询用户预约历史 - 用户ID: {}", userId);
+        List<Appointment> appointments = appointmentDao.findByUserIdWithCheckgroupName(userId);
+        logger.info("用户{}的预约历史查询完成，共{}条记录", userId, appointments != null ? appointments.size() : 0);
+        return appointments;
     }
 
     /**
@@ -67,6 +93,15 @@ public class AppointmentService {
      * @return 是否成功
      */
     public boolean completeAppointment(int appointmentId) {
-        return appointmentDao.updateStatus(appointmentId, "completed") > 0;
+        logger.debug("开始完成预约 - 预约ID: {}", appointmentId);
+        
+        int result = appointmentDao.updateStatus(appointmentId, "completed");
+        if (result > 0) {
+            logger.info("成功完成预约 - 预约ID: {}", appointmentId);
+            return true;
+        } else {
+            logger.warn("完成预约失败 - 预约ID: {}", appointmentId);
+            return false;
+        }
     }
 }

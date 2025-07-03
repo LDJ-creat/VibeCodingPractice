@@ -4,12 +4,16 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.chuanzhi.health.dao.CheckgroupDao;
 import com.chuanzhi.health.dao.impl.CheckgroupDaoImpl;
 import com.chuanzhi.health.model.Checkgroup;
 import com.chuanzhi.health.util.DBUtil;
 
 public class CheckgroupService {
+    private static final Logger logger = LoggerFactory.getLogger(CheckgroupService.class);
     private CheckgroupDao checkgroupDao = new CheckgroupDaoImpl();
 
     // For testing with mocks
@@ -18,6 +22,10 @@ public class CheckgroupService {
     }
 
     public void add(Checkgroup checkgroup) {
+        logger.debug("开始新增检查组 - 代号: {}, 名称: {}, 关联检查项数量: {}", 
+                    checkgroup.getCode(), checkgroup.getName(), 
+                    checkgroup.getCheckitemIds() != null ? checkgroup.getCheckitemIds().size() : 0);
+        
         Connection conn = null;
         try {
             conn = DBUtil.getConnection();
@@ -25,28 +33,33 @@ public class CheckgroupService {
 
             // 1. Add to checkgroup table and get generated gid
             int gid = checkgroupDao.add(conn, checkgroup);
+            logger.debug("检查组已插入数据库，生成ID: {}", gid);
 
             // 2. Add to association table
             if (checkgroup.getCheckitemIds() != null && !checkgroup.getCheckitemIds().isEmpty()) {
                 checkgroupDao.addCheckgroupCheckitem(conn, gid, checkgroup.getCheckitemIds());
+                logger.debug("检查组关联关系已建立，检查项数量: {}", checkgroup.getCheckitemIds().size());
             }
 
             conn.commit(); // Commit transaction
+            logger.info("成功新增检查组 - 代号: {}, 名称: {}, ID: {}", checkgroup.getCode(), checkgroup.getName(), gid);
         } catch (SQLException e) {
+            logger.error("新增检查组失败 - 代号: {}, 名称: {}", checkgroup.getCode(), checkgroup.getName(), e);
             if (conn != null) {
                 try {
                     conn.rollback(); // Rollback transaction on error
+                    logger.debug("事务已回滚");
                 } catch (SQLException ex) {
-                    ex.printStackTrace();
+                    logger.error("事务回滚失败", ex);
                 }
             }
-            e.printStackTrace();
+            throw new RuntimeException("新增检查组失败", e);
         } finally {
             if (conn != null) {
                 try {
                     conn.close();
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    logger.error("关闭数据库连接失败", e);
                 }
             }
         }

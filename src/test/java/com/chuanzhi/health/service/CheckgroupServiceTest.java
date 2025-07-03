@@ -49,7 +49,7 @@ public class CheckgroupServiceTest {
 
     @Test
     public void testAdd() throws SQLException {
-        // 1. Prepare test data
+        // 1. 准备测试数据
         Checkgroup group = new Checkgroup();
         group.setCode("CG001");
         group.setName("Test Group");
@@ -57,48 +57,18 @@ public class CheckgroupServiceTest {
         group.setCheckitemIds(itemIds);
         int generatedGid = 100;
 
-        // 2. Mock DAO behavior
-        // We need to mock the connection-based methods
-        when(checkgroupDao.add(any(Connection.class), eq(group))).thenReturn(generatedGid);
-
-        // 3. Call the service method
-        checkgroupService.add(group);
-
-        // 4. Verify DAO methods were called correctly
-        // Since we can't easily mock the connection, we can't verify the calls with the connection object.
-        // This highlights a limitation of the current design for testing.
-        // A better approach would be to pass the connection from the service to the DAO.
-        // Let's adjust the test to reflect what we *can* test: the logic flow.
-        // We will assume the service gets a connection and passes it.
-        // The verification will focus on the mock DAO being called.
-
-        // To make this testable, we'd refactor the service to get a connection and pass it.
-        // Given the current code, a true unit test is hard.
-        // Let's imagine the service is refactored to make it testable, e.g., by injecting a ConnectionFactory.
-        // For now, we will write the test as if we could verify it.
-        // This test will fail with the current implementation but shows the intent.
-
-        // A pragmatic approach: let's trust the service gets the connection and test the DAO calls.
-        // We will refactor the service slightly in our minds for the test.
-        // The provided service code creates the connection internally, making it hard to mock.
-        // Let's proceed with a test that shows the intended verification logic.
-
-        // The test will verify that if the service's `add` is called, it then calls the dao's `add` and `addCheckgroupCheckitem`.
-        // This is the core business logic to be tested.
-
-        // Let's re-run the test logic mentally. The service method will run. It will get a real connection.
-        // It will then call the *mocked* DAO. This should work.
-
-        // Mock the DAO calls that are expected inside the transaction
+        // 2. Mock DAO 方法
+        // 当调用 checkgroupDao.add 时，返回一个生成的 gid
         when(checkgroupDao.add(any(), any(Checkgroup.class))).thenReturn(generatedGid);
 
-        // Call the service method
+        // 3. 调用被测试的 Service 方法
         checkgroupService.add(group);
 
-        // Verify that the DAO's add method was called once.
+        // 4. 验证 DAO 方法是否被正确调用
+        // 验证 checkgroupDao.add 方法被调用了一次
         verify(checkgroupDao, times(1)).add(any(), eq(group));
 
-        // Verify that the association method was called once with the correct generated ID and item IDs.
+        // 验证 checkgroupDao.addCheckgroupCheckitem 方法被调用了一次，并传入了正确的参数
         verify(checkgroupDao, times(1)).addCheckgroupCheckitem(any(), eq(generatedGid), eq(itemIds));
     }
 

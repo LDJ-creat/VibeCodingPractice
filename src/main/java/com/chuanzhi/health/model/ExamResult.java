@@ -18,6 +18,7 @@ public class ExamResult {
     private String examValue; // 检查结果值，可能与resultValue重复，但为了清晰区分UI展示和原始数据
     private String referenceValue; // 参考值
     private Integer isAbnormal; // 是否异常，1表示异常，0表示正常
+    private String  resultDesc; // 结果描述
 
     // Getters and Setters
     public Integer getId() {
@@ -97,6 +98,13 @@ public class ExamResult {
         return isAbnormal;
     }
 
+    public void setResultDesc(String resultDesc) {
+        this.resultDesc = resultDesc;
+    }
+    public String getResultDesc() {
+        return resultDesc;
+    }
+
     public void setIsAbnormal(Integer isAbnormal) {
         this.isAbnormal = isAbnormal;
     }
@@ -113,7 +121,8 @@ public class ExamResult {
                 ", checkitemName='" + checkitemName + '\'' +
                 ", examValue='" + examValue + '\'' +
                 ", referenceValue='" + referenceValue + '\'' +
-                ", isAbnormal=" + isAbnormal +
+                ", isAbnormal=" + isAbnormal + '\'' +
+                ", resultDesc='" + resultDesc + '\'' +
                 '}';
     }
 }
